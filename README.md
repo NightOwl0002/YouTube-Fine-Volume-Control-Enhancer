@@ -37,3 +37,12 @@ If you'd like to see this extension on the Chrome Web Store, it cost $5 and I ca
 
 
 <small>The icon was AI generated, as im lazy and not talented.</small>
+
+
+## ⚖️ License & Usage
+
+This extension is provided completely free and open-source for your personal use. You are welcome to inspect the code, learn from it, and modify it for your own browser. 
+
+However, **you may not republish, redistribute, or monetize this code as your own.** 
+
+Please do not upload this extension (or modified versions of it) to the Chrome Web Store, Firefox Add-ons, or any other public extension marketplace. If you would like to share this extension with others, please link them directly to this GitHub repository!
