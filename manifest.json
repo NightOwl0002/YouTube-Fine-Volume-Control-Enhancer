@@ -18,5 +18,11 @@
   ],
   "icons": {
     "128": "icon.png"
+  },
+  "action": {
+    "default_icon": {
+      "128": "icon.png"
+    },
+    "default_title": "YouTube Fine Volume Control"
   }
 }
