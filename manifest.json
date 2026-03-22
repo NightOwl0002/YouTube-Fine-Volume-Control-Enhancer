@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "YouTube Fine Volume Control",
+  "version": "1.0",
+  "description": "Adjust volume to 0.1%, Auto-HD, and Mini-Player.",
+  "content_scripts":[
+    {
+      "matches": ["*://*.youtube.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_start"
+    }
+  ],
+  "web_accessible_resources":[
+    {
+      "resources": ["inject.js"],
+      "matches":["*://*.youtube.com/*"]
+    }
+  ],
+  "icons": {
+    "128": "icon.png"
+  }
+}
