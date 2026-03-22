@@ -33,3 +33,7 @@ Because this extension is open-source and not hosted on the Chrome Web Store, yo
 Because YouTube frequently updates its UI and class names, things can occasionally break! Feel free to open an Issue or submit a Pull Request if you notice a bug or want to suggest a feature.
 
 If you'd like to see this extension on the Chrome Web Store, it cost $5 and I cant afford it (yes really, im that broke). If you wish to do so you can toss me a dollar here: https://streamelements.com/ytnightowl/tip
+
+
+
+<small>The icon was AI generated, as im lazy and not talented.</small>
