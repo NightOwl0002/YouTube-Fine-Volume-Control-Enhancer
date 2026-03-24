@@ -7,11 +7,12 @@ Built completely free of trackers, bloatware, and data-collection.
 
 ## ✨ Features
 
-* **Fine Volume Control:** Hover over the video player and scroll your mouse wheel to adjust the volume by **0.1%** increments. (Hold `Shift` while scrolling for 1% increments).
+* **Fine Volume Control:** Hover over any video player and scroll your mouse wheel to adjust the volume by **0.1%** increments. (Hold `Shift` while scrolling for 1% increments).
+* **Seamless YouTube Shorts Support:** The volume scroll wheel works perfectly on YouTube Shorts! Just hover directly over the video to change the volume. To scroll to the next Short, simply move your mouse to the dark margins or the comments section and scroll normally.
 * **Permanent Volume Memory:** Remembers your exact decimal volume across new tabs and videos. Defeats YouTube's auto-muting bug.
 * **Smart Mini-Player:** Scrolling down to read comments? The video automatically seamlessly snaps to the bottom right corner of your screen so you never miss a frame.
-* **Auto-1440p HD:** Automatically requests YouTube's 1440p High-Resolution stream the moment a video starts. - *I will make this customisable if requested.*
-* **Zero Bloat:** Uses pure vanilla JavaScript and CSS. No background tracking, no ads, and no data collection. 
+* **Auto-1440p HD:** Automatically requests YouTube's 1440p High-Resolution stream the moment a video starts.
+* **Zero Bloat:** Uses pure vanilla JavaScript and CSS. No background tracking, no ads, and no data collection.
 
 ## 🛠️ How to Install (Developer Mode)
 
