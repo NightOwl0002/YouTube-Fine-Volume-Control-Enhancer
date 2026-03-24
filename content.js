@@ -4,50 +4,23 @@ script.src = chrome.runtime.getURL('inject.js');
 script.onload = function() { this.remove(); };
 (document.head || document.documentElement).appendChild(script);
 
-// Mini Player CSS (Upgraded with Video Scaling Fixes)
+// Mini Player CSS
 const style = document.createElement('style');
 style.textContent = `
-    .fv-mini-player #primary {
-        z-index: 999999 !important;
-        position: relative !important;
-    }
-    
+    .fv-mini-player #primary { z-index: 999999 !important; position: relative !important; }
     .fv-mini-player ytd-player {
-        position: fixed !important;
-        bottom: 20px !important;
-        right: 20px !important;
-        width: 480px !important;
-        height: 270px !important;
-        z-index: 999999 !important;
-        box-shadow: 0px 4px 20px rgba(0,0,0,0.8) !important;
-        border-radius: 12px !important;
-        background: black !important;
-        overflow: hidden !important;
+        position: fixed !important; bottom: 20px !important; right: 20px !important;
+        width: 480px !important; height: 270px !important; z-index: 999999 !important;
+        box-shadow: 0px 4px 20px rgba(0,0,0,0.8) !important; border-radius: 12px !important;
+        background: black !important; overflow: hidden !important;
     }
-
-    /* Force every internal layer of the video player to shrink and fit exactly inside the small box */
-    .fv-mini-player ytd-player .html5-video-player,
-    .fv-mini-player ytd-player .html5-video-container,
+    .fv-mini-player ytd-player .html5-video-player, .fv-mini-player ytd-player .html5-video-container,
     .fv-mini-player ytd-player video {
-        width: 100% !important;
-        height: 100% !important;
-        top: 0 !important;
-        left: 0 !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        object-fit: contain !important;
+        width: 100% !important; height: 100% !important; top: 0 !important; left: 0 !important;
+        margin: 0 !important; padding: 0 !important; object-fit: contain !important;
     }
-
-    /* Shrink the YouTube control bar so it doesn't bleed off the edges */
-    .fv-mini-player ytd-player .ytp-chrome-bottom {
-        width: calc(100% - 24px) !important;
-        left: 12px !important;
-    }
-
-    /* Hide giant UI elements that clutter the tiny player */
-    .fv-mini-player ytd-player .ytp-chapter-container {
-        display: none !important;
-    }
+    .fv-mini-player ytd-player .ytp-chrome-bottom { width: calc(100% - 24px) !important; left: 12px !important; }
+    .fv-mini-player ytd-player .ytp-chapter-container { display: none !important; }
 `;
 (document.head || document.documentElement).appendChild(style);
 
@@ -57,19 +30,12 @@ let popupDisplay;
 function showPopup(text) {
     if (!popupDisplay) {
         popupDisplay = document.createElement('div');
-        popupDisplay.style.position = 'fixed';
-        popupDisplay.style.top = '10%';
-        popupDisplay.style.left = '50%';
-        popupDisplay.style.transform = 'translateX(-50%)';
-        popupDisplay.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-        popupDisplay.style.color = '#fff';
-        popupDisplay.style.padding = '10px 20px';
-        popupDisplay.style.borderRadius = '5px';
-        popupDisplay.style.fontSize = '24px';
-        popupDisplay.style.fontFamily = 'Arial, sans-serif';
-        popupDisplay.style.zIndex = '9999999';
-        popupDisplay.style.pointerEvents = 'none';
-        popupDisplay.style.transition = 'opacity 0.2s';
+        popupDisplay.style.position = 'fixed'; popupDisplay.style.top = '10%'; popupDisplay.style.left = '50%';
+        popupDisplay.style.transform = 'translateX(-50%)'; popupDisplay.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+        popupDisplay.style.color = '#fff'; popupDisplay.style.padding = '10px 20px';
+        popupDisplay.style.borderRadius = '5px'; popupDisplay.style.fontSize = '24px';
+        popupDisplay.style.fontFamily = 'Arial, sans-serif'; popupDisplay.style.zIndex = '9999999';
+        popupDisplay.style.pointerEvents = 'none'; popupDisplay.style.transition = 'opacity 0.2s';
         document.body.appendChild(popupDisplay);
     }
     popupDisplay.innerText = text;
@@ -88,18 +54,27 @@ function releaseLock() {
     window.dispatchEvent(new CustomEvent('ReleaseFineVolume'));
 }
 
+// 4. THE MASTER SCROLL CONTROLLER
 window.addEventListener('wheel', (e) => {
-    const player = document.querySelector('#movie_player');
-    if (!player || !player.contains(e.target)) return;
-    const video = document.querySelector('video');
-    if (!video) return;
+    // Check if the mouse is hovering directly over ANY video player (Normal or Shorts)
+    const player = e.target.closest('ytd-player') || e.target.closest('#movie_player');
     
+    // If the mouse is NOT over the video, let normal scrolling happen 
+    // (This allows you to scroll to the next Short by hovering the side margins or comments!)
+    if (!player) return;
+
+    // Find the active video to start our math from
+    const video = player.querySelector('video') || document.querySelector('video');
+    if (!video) return;
+
+    // CRITICAL: Prevent YouTube from seeing the scroll event so it doesn't jump to the next Short!
     e.preventDefault();
+    e.stopPropagation();
+
     if (currentFineVolume === null) currentFineVolume = video.volume;
 
     const STEP = 0.001;
-    let delta = e.deltaY < 0 ? STEP : -STEP;
-    if (e.shiftKey) delta = e.deltaY < 0 ? 0.01 : -0.01;
+    let delta = e.shiftKey ? (e.deltaY < 0 ? 0.01 : -0.01) : (e.deltaY < 0 ? STEP : -STEP);
 
     currentFineVolume += delta;
     currentFineVolume = Math.round(currentFineVolume * 1000) / 1000;
@@ -112,14 +87,14 @@ window.addEventListener('wheel', (e) => {
 }, { passive: false });
 
 
-// 4. THE AUTOMATIC RESTORER 
+// 5. THE AUTOMATIC RESTORER 
 function autoRestoreVideoState() {
     let attempts = 0;
     const checkExist = setInterval(() => {
         attempts++;
-        const video = document.querySelector('video');
+        const videos = document.querySelectorAll('video');
         
-        if (video && video.readyState > 0) {
+        if (videos.length > 0 && videos[0].readyState > 0) {
             clearInterval(checkExist);
             
             if (currentFineVolume !== null) {
@@ -136,9 +111,11 @@ window.addEventListener('load', autoRestoreVideoState);
 document.addEventListener('yt-navigate-finish', autoRestoreVideoState);
 
 
-// 5. SMART RELEASES
+// 6. SMART RELEASES 
 document.addEventListener('mousedown', (e) => {
-    if (e.target.closest('.ytp-volume-area')) releaseLock();
+    if (e.target.closest('.ytp-volume-area') || e.target.closest('ytd-shorts-player-controls')) {
+        releaseLock();
+    }
 });
 
 window.addEventListener('keydown', (e) => {
@@ -148,7 +125,7 @@ window.addEventListener('keydown', (e) => {
 });
 
 
-// 6. MINI PLAYER SCROLL LOGIC (Upgraded to fix jittering!)
+// 7. MINI PLAYER SCROLL LOGIC
 let isMiniPlayerActive = false;
 window.addEventListener('scroll', () => {
     if (!window.location.pathname.startsWith('/watch')) return;
@@ -156,7 +133,6 @@ window.addEventListener('scroll', () => {
     const playerWrapper = document.querySelector('ytd-player');
     if (!playerWrapper || document.fullscreenElement) return;
 
-    // We must track the wrapper's PARENT container so our measurements don't break when we move the video
     const container = playerWrapper.parentElement;
     if (!container) return;
 
@@ -164,13 +140,11 @@ window.addEventListener('scroll', () => {
     
     if (rect.bottom < 0 && !isMiniPlayerActive) {
         isMiniPlayerActive = true;
-        // The Kickstand: Lock the empty container's height so the webpage doesn't collapse
         container.style.minHeight = container.offsetHeight + 'px';
         document.body.classList.add('fv-mini-player');
         
     } else if (rect.bottom >= 0 && isMiniPlayerActive) {
         isMiniPlayerActive = false;
-        // Remove the Kickstand
         container.style.minHeight = '';
         document.body.classList.remove('fv-mini-player');
     }
