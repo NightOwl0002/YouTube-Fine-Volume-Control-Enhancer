@@ -4,21 +4,32 @@ script.src = chrome.runtime.getURL('inject.js');
 script.onload = function() { this.remove(); };
 (document.head || document.documentElement).appendChild(script);
 
-// Mini Player CSS
+// Mini Player CSS (Upgraded to brute-force the Z-Index overlap)
 const style = document.createElement('style');
 style.textContent = `
-    .fv-mini-player #primary { z-index: 999999 !important; position: relative !important; }
+    /* Force every possible video parent container to the absolute front */
+    .fv-mini-player #primary,
+    .fv-mini-player #player,
+    .fv-mini-player #player-container-outer,
+    .fv-mini-player #player-full-bleed-container,
+    .fv-mini-player ytd-watch-flexy[flexy] #primary.ytd-watch-flexy {
+        z-index: 999999 !important; 
+        position: relative !important; 
+    }
+
     .fv-mini-player ytd-player {
         position: fixed !important; bottom: 20px !important; right: 20px !important;
         width: 480px !important; height: 270px !important; z-index: 999999 !important;
         box-shadow: 0px 4px 20px rgba(0,0,0,0.8) !important; border-radius: 12px !important;
         background: black !important; overflow: hidden !important;
     }
+    
     .fv-mini-player ytd-player .html5-video-player, .fv-mini-player ytd-player .html5-video-container,
     .fv-mini-player ytd-player video {
         width: 100% !important; height: 100% !important; top: 0 !important; left: 0 !important;
         margin: 0 !important; padding: 0 !important; object-fit: contain !important;
     }
+    
     .fv-mini-player ytd-player .ytp-chrome-bottom { width: calc(100% - 24px) !important; left: 12px !important; }
     .fv-mini-player ytd-player .ytp-chapter-container { display: none !important; }
 `;
@@ -60,7 +71,6 @@ window.addEventListener('wheel', (e) => {
     const player = e.target.closest('ytd-player') || e.target.closest('#movie_player');
     
     // If the mouse is NOT over the video, let normal scrolling happen 
-    // (This allows you to scroll to the next Short by hovering the side margins or comments!)
     if (!player) return;
 
     // Find the active video to start our math from
