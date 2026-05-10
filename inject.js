@@ -1,45 +1,67 @@
-// --- 1. THE VOLUME LOCK OVERRIDE ---
 const originalVolumeDescriptor = Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, 'volume');
-const originalSet = originalVolumeDescriptor.set;
-const originalGet = originalVolumeDescriptor.get;
+const originalVolumeSet = originalVolumeDescriptor.set;
+const originalVolumeGet = originalVolumeDescriptor.get;
+
+const originalMutedDescriptor = Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, 'muted');
+const originalMutedSet = originalMutedDescriptor.set;
+const originalMutedGet = originalMutedDescriptor.get;
+
 const originalPlay = HTMLMediaElement.prototype.play;
 
 let lockedVolume = null;
 
 // Intercept ANY attempt to change the volume
 Object.defineProperty(HTMLMediaElement.prototype, 'volume', {
-    get: function() { return originalGet.call(this); },
+    get: function() { return originalVolumeGet.call(this); },
     set: function(newVolume) {
         if (lockedVolume !== null) {
-            // If it matches our safe volume, let it through
             if (Math.abs(newVolume - lockedVolume) < 0.0001) {
-                originalSet.call(this, newVolume);
+                originalVolumeSet.call(this, newVolume);
                 return;
             }
-            // If YouTube tries to force it to 100% (or anything else), 
-            // throw it in the trash and forcefully apply our safe volume instead!
-            originalSet.call(this, lockedVolume);
+            originalVolumeSet.call(this, lockedVolume);
             return; 
         }
-        originalSet.call(this, newVolume);
+        originalVolumeSet.call(this, newVolume);
     }
 });
 
-// UPGRADE: Catch brand new Shorts the exact millisecond they try to play!
+// Intercept ANY attempt to Mute the video
+Object.defineProperty(HTMLMediaElement.prototype, 'muted', {
+    get: function() { return originalMutedGet.call(this); },
+    set: function(newMuted) {
+        // If locked, just silently drop the request to mute. 
+        if (lockedVolume !== null && newMuted === true) {
+            originalMutedSet.call(this, false); 
+            return;
+        }
+        originalMutedSet.call(this, newMuted);
+    }
+});
+
+// Catch brand new Shorts the exact millisecond they try to play
 HTMLMediaElement.prototype.play = function() {
     if (lockedVolume !== null) {
-        originalSet.call(this, lockedVolume);
-        this.muted = false;
+        originalVolumeSet.call(this, lockedVolume);
+        originalMutedSet.call(this, false);
     }
     return originalPlay.apply(this, arguments);
 };
 
-// Listen for our extension's command and apply it to ALL video tags (Fixes Shorts multi-video)
+// Listen for extension's command and apply it to ALL video tags
 window.addEventListener('SetFineVolume', (e) => {
     lockedVolume = e.detail;
+    
+    // Only call the YouTube API here because it only happens 
+    // when the extension specifically sends the command (not thousands of times a second).
+    const player = document.getElementById('movie_player');
+    if (player && typeof player.unMute === 'function') {
+        player.unMute();
+    }
+
     document.querySelectorAll('video').forEach(video => {
-        video.muted = false;
-        originalSet.call(video, lockedVolume);
+        originalMutedSet.call(video, false); 
+        originalVolumeSet.call(video, lockedVolume);
     });
 });
 
