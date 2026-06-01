@@ -1,5 +1,5 @@
 
-# YouTube Fine Volume Control & Enhancer
+# YouTube And YouTube Music Fine Volume Control & Enhancer
 
 A lightweight, privacy-first Chrome Extension designed for users with sensitive hearing, tinnitus, or high-end audio setups. It bypasses YouTube's standard 1% volume increments, allowing you to seamlessly adjust your volume down to **0.1%** using your mouse wheel. 
 
@@ -7,7 +7,7 @@ Built completely free of trackers, bloatware, and data-collection.
 
 ## ✨ Features
 
-* **Fine Volume Control:** Hover over any video player and scroll your mouse wheel to adjust the volume by **0.1%** increments. (Hold `Shift` while scrolling for 1% increments).
+* **Fine Volume Control:** Hover over any video player (or the album art on YT Music) and scroll your mouse wheel to adjust the volume by **0.1%** increments. (Hold `Shift` while scrolling for 1% increments).
 * **Seamless YouTube Shorts Support:** The volume scroll wheel works perfectly on YouTube Shorts! Just hover directly over the video to change the volume. To scroll to the next Short, simply move your mouse to the dark margins or the comments section and scroll normally.
 * **Permanent Volume Memory:** Remembers your exact decimal volume across new tabs and videos. Defeats YouTube's auto-muting bug.
 * **Smart Mini-Player:** Scrolling down to read comments? The video automatically seamlessly snaps to the bottom right corner of your screen so you never miss a frame.
