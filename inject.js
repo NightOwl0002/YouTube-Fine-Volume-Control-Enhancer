@@ -1,3 +1,4 @@
+// --- 1. THE VOLUME & MUTE LOCK OVERRIDES ---
 const originalVolumeDescriptor = Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, 'volume');
 const originalVolumeSet = originalVolumeDescriptor.set;
 const originalVolumeGet = originalVolumeDescriptor.get;
@@ -26,7 +27,7 @@ Object.defineProperty(HTMLMediaElement.prototype, 'volume', {
     }
 });
 
-// Intercept ANY attempt to Mute the video
+// Intercept ANY attempt to Mute the video/audio
 Object.defineProperty(HTMLMediaElement.prototype, 'muted', {
     get: function() { return originalMutedGet.call(this); },
     set: function(newMuted) {
@@ -39,7 +40,7 @@ Object.defineProperty(HTMLMediaElement.prototype, 'muted', {
     }
 });
 
-// Catch brand new Shorts the exact millisecond they try to play
+// Catch brand new media the exact millisecond they try to play
 HTMLMediaElement.prototype.play = function() {
     if (lockedVolume !== null) {
         originalVolumeSet.call(this, lockedVolume);
@@ -48,20 +49,20 @@ HTMLMediaElement.prototype.play = function() {
     return originalPlay.apply(this, arguments);
 };
 
-// Listen for extension's command and apply it to ALL video tags
+// Listen for our extension's command and apply it to ALL media tags
 window.addEventListener('SetFineVolume', (e) => {
     lockedVolume = e.detail;
     
-    // Only call the YouTube API here because it only happens 
-    // when the extension specifically sends the command (not thousands of times a second).
+    // SAFE: Sync the UI state
     const player = document.getElementById('movie_player');
     if (player && typeof player.unMute === 'function') {
         player.unMute();
     }
 
-    document.querySelectorAll('video').forEach(video => {
-        originalMutedSet.call(video, false); 
-        originalVolumeSet.call(video, lockedVolume);
+    // THE YT MUSIC FIX: Target BOTH video and audio elements!
+    document.querySelectorAll('video, audio').forEach(media => {
+        originalMutedSet.call(media, false); 
+        originalVolumeSet.call(media, lockedVolume);
     });
 });
 
