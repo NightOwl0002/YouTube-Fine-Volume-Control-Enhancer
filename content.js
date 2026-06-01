@@ -67,21 +67,24 @@ function releaseLock() {
 
 // 4. THE MASTER SCROLL CONTROLLER
 window.addEventListener('wheel', (e) => {
-    // Check if the mouse is hovering directly over ANY video player (Normal or Shorts)
-    const player = e.target.closest('ytd-player') || e.target.closest('#movie_player');
+    // Check if the mouse is hovering directly over ANY video player (Normal, Shorts, or YT Music)
+    const player = e.target.closest('ytd-player') || 
+                   e.target.closest('#movie_player') ||
+                   e.target.closest('ytmusic-player') || 
+                   e.target.closest('ytmusic-player-bar');
     
     // If the mouse is NOT over the video, let normal scrolling happen 
     if (!player) return;
 
-    // Find the active video to start our math from
-    const video = player.querySelector('video') || document.querySelector('video');
-    if (!video) return;
+    // Find the active video or audio tag to start our math from
+    const media = player.querySelector('video, audio') || document.querySelector('video, audio');
+    if (!media) return;
 
     // CRITICAL: Prevent YouTube from seeing the scroll event so it doesn't jump to the next Short!
     e.preventDefault();
     e.stopPropagation();
 
-    if (currentFineVolume === null) currentFineVolume = video.volume;
+    if (currentFineVolume === null) currentFineVolume = media.volume;
 
     const STEP = 0.001;
     let delta = e.shiftKey ? (e.deltaY < 0 ? 0.01 : -0.01) : (e.deltaY < 0 ? STEP : -STEP);
@@ -102,9 +105,10 @@ function autoRestoreVideoState() {
     let attempts = 0;
     const checkExist = setInterval(() => {
         attempts++;
-        const videos = document.querySelectorAll('video');
+        // Check for both video and audio tags
+        const mediaElements = document.querySelectorAll('video, audio');
         
-        if (videos.length > 0 && videos[0].readyState > 0) {
+        if (mediaElements.length > 0 && mediaElements[0].readyState > 0) {
             clearInterval(checkExist);
             
             if (currentFineVolume !== null) {
@@ -123,7 +127,13 @@ document.addEventListener('yt-navigate-finish', autoRestoreVideoState);
 
 // 6. SMART RELEASES 
 document.addEventListener('mousedown', (e) => {
-    if (e.target.closest('.ytp-volume-area') || e.target.closest('ytd-shorts-player-controls')) {
+    // .ytp-volume-area = Standard YouTube
+    // ytd-shorts-player-controls = YouTube Shorts
+    // ytmusic-player-bar = YouTube Music
+    if (e.target.closest('.ytp-volume-area') || 
+        e.target.closest('ytd-shorts-player-controls') ||
+        e.target.closest('ytmusic-player-bar') 
+       ) {
         releaseLock();
     }
 });
@@ -134,10 +144,12 @@ window.addEventListener('keydown', (e) => {
     if (['m', 'M', 'ArrowUp', 'ArrowDown'].includes(e.key)) releaseLock();
 });
 
-
 // 7. MINI PLAYER SCROLL LOGIC
 let isMiniPlayerActive = false;
 window.addEventListener('scroll', () => {
+    // Abort if we are on YouTube Music (prevents mini-player conflicts)
+    if (window.location.hostname === 'music.youtube.com') return;
+
     if (!window.location.pathname.startsWith('/watch')) return;
 
     const playerWrapper = document.querySelector('ytd-player');
