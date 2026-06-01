@@ -105,7 +105,6 @@ function autoRestoreVideoState() {
     let attempts = 0;
     const checkExist = setInterval(() => {
         attempts++;
-        // Check for both video and audio tags
         const mediaElements = document.querySelectorAll('video, audio');
         
         if (mediaElements.length > 0 && mediaElements[0].readyState > 0) {
@@ -124,15 +123,25 @@ function autoRestoreVideoState() {
 window.addEventListener('load', autoRestoreVideoState);
 document.addEventListener('yt-navigate-finish', autoRestoreVideoState);
 
+// NEW: Catch silent playlist transitions natively!
+// Whenever a new song/video actually loads its data, enforce our saved volume.
+document.addEventListener('loadeddata', (e) => {
+    if (e.target.tagName === 'VIDEO' || e.target.tagName === 'AUDIO') {
+        if (currentFineVolume !== null) {
+            window.dispatchEvent(new CustomEvent('SetFineVolume', { detail: currentFineVolume }));
+        }
+    }
+}, true); // Use 'true' to capture the event before YouTube's scripts can react
+
 
 // 6. SMART RELEASES 
 document.addEventListener('mousedown', (e) => {
     // .ytp-volume-area = Standard YouTube
     // ytd-shorts-player-controls = YouTube Shorts
-    // ytmusic-player-bar = YouTube Music
+    // #volume-slider = YouTube Music (Targeting ONLY the slider, not the whole bar!)
     if (e.target.closest('.ytp-volume-area') || 
         e.target.closest('ytd-shorts-player-controls') ||
-        e.target.closest('ytmusic-player-bar') 
+        e.target.closest('#volume-slider') 
        ) {
         releaseLock();
     }
